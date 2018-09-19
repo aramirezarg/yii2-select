@@ -1,0 +1,22 @@
+{
+    "name": "magicsoft/yii2-select",
+    "description": "Magic Select",
+    "type": "library",
+    "keywords": ["yii2","library"],
+    "homepage": "https://github.com/aramirezarg/magicsoft/yii2-select",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Alfredo Ramirez",
+            "email": "alfredrz2012@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "magicsoft\\select\\": ""
+        }
+    }
+}
