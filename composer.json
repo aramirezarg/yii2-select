@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "magicsoft\\yii2-select\\": ""
+            "magicsoft\\select\\": "src"
         }
     }
 }
