@@ -5,7 +5,7 @@
  * Time: 11:39 AM
  */
 
-namespace magicsoft\select;
+namespace magicsoft\select\controllers;
 
 use Yii;
 use yii\helpers\ArrayHelper;
