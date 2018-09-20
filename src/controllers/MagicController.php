@@ -61,9 +61,6 @@ trait MagicController
      *          'param'     => string,  //param in actionController
      *          'attribute' => string,  //attribute in model to get value of param.
      *      ],
-     *      'audit'     => [//for audit for other model
-     *          'model'     => $model
-     *      ]
      *      'call_back_functions' => [] //Function for after save
      * ]
      */
@@ -88,23 +85,15 @@ trait MagicController
         $image                  = ArrayHelper::getValue($options, 'image', null);
         $redirect               = ArrayHelper::getValue($options, 'redirect', null);
         $returnUrl              = ArrayHelper::getValue($options, 'returnUrl', null);
-        $audit                  = ArrayHelper::getValue($options, 'audit', []);
         $sub_model_update       = ArrayHelper::getValue($options, 'sub_model_update', []);
-        $sub_model_update_without_audit    = ArrayHelper::getValue($options, 'sub_model_update_without_audit', []);
         $call_back_functions    = ArrayHelper::getValue($options, 'call_back_functions', []);
 
         $load = $mode[0] ? 'loadAll' : 'load';
         $save = $mode[0] ? 'saveAll' : 'save';
-        $isNewRecord    = ArrayHelper::getValue($audit, 'newRecord', $model->isNewRecord);
 
         if( $model->{$load}(Yii::$app->request->post())) {
             $thisTrans = Yii::$app->getDb()->beginTransaction();
             if( $model->{$save}($save == 'saveAll' ? $this->getOnlyRelationsUpdate($model, $mode[1]) : true)) {
-
-                $sub_model_audit = ArrayHelper::getValue($audit, 'model', null);
-                $model_audit = $sub_model_audit ? $model->{$sub_model_audit} : $model;
-
-                Audit::newAction($model_audit, $this, $isNewRecord);
 
                 if(is_array($image)){
                     $path = Yii::getAlias($image['path']);
@@ -125,14 +114,6 @@ trait MagicController
 
                 foreach ($sub_model_update as $sub_model){
                     if($sub_model && !$this->saveUsingAudit($sub_model)){
-                        $thisTrans->rollBack();
-                        return $this->responseError($sub_model);
-                        break;
-                    }
-                }
-
-                foreach ($sub_model_update_without_audit as $sub_model){
-                    if($sub_model && !$sub_model->save()){
                         $thisTrans->rollBack();
                         return $this->responseError($sub_model);
                         break;
