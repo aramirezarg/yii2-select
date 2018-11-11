@@ -13,83 +13,65 @@ class MagicSelectController extends Controller
 {
 
     /**
-     * @param null $model
-     * @param $column_name
-     * @param null $attribute_get_value
+     * @param $class
+     * @param $search_columns
+     * @param $column_description
+     * @param null $join
      * @param null $special_function_search
-     * @param null $module
-     * @param null $relation_model
-     * @param null $parent_select
-     * @param null $parent_select_id
-     * @param null $model_id
+     * @param null $parent_relation
+     * @param null $parent_relation_id
      * @param null $q
      * @return array
      * @throws NotFoundHttpException
      */
     public function actionGetData(
-        $model,
-        $column_name,
-        $attribute_get_value = null,
+        $class,
+        $search_columns,
+        $column_description,
+        $join = null,
         $special_function_search = null,
-        $module = null,
-        $relation_model = null,
-        $parent_select = null,
-        $parent_select_id = null,
-        $model_id = null,
+        $parent_relation = null,
+        $parent_relation_id = null,
         $q = null
     ){
         if(!Yii::$app->request->isAjax) throw new NotFoundHttpException('The requested page does not exist.');
-
-        $model_route = $module ? "app\\modules\\$module\\models\\" : "app\\models\\";
-
-        $__model = $model_route . ucwords($model);
-
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $out = ['results' => ['id' => '', 'text' => '']];
+        $class = MagicCrypto::decrypt($class);
+        $search_columns = MagicCrypto::decrypt($search_columns);
+        $column_description = MagicCrypto::decrypt($column_description);
 
-        $relation_model = strtolower($relation_model);
+        $out = ['results' => ['id' => null, 'text' => '']];
+
+        $join = strtolower($join);
 
         if(!is_null($q)) {
             if ($special_function_search) {
-                $resultModel = $__model::{$special_function_search}($q);
+                $resultModel = $class::{$special_function_search}($q);
             } else {
-                $resultModel = $__model::find();
+                $resultModel = $class::find();
 
-                if ($relation_model) $resultModel->joinWith($relation_model);
+                if ($join) $resultModel->joinWith($join);
 
-                $resultModel->where(['like', ($relation_model ? $relation_model . '.' : '') . $column_name, $q]);
+                $resultModel->where(['like', ($join ? $join . '.' : '') . ' concat(' . $search_columns . ')', $q]);
             }
         }else{
-            $resultModel = $__model::find();
+            $resultModel = $class::find();
         }
 
-        if ($parent_select) $resultModel->andWhere([$parent_select . '_id' => $parent_select_id]);
+        if ($parent_relation) $resultModel->andWhere([$parent_relation . '_id' => $parent_relation_id]);
         $resultModel->limit(20);
 
         $data = ArrayHelper::map( $resultModel->all(),
             function ($model){
                 return $model->id;
             },
-            function ($model) use($relation_model, $column_name, $attribute_get_value) {
-                return $relation_model ? $model->{$relation_model}->{$column_name} : $model->{$attribute_get_value ? $attribute_get_value : $column_name};
+            function ($model) use($join, $column_description) {
+                return $join ? $model->{$join}->{$column_description} : $model->{$column_description};
             }
         );
 
         $_out = [];
-
-        $controller = strtolower(preg_replace('/([A-Z])/', '-$1', lcfirst ($model)));
-        $controller = mb_strtolower($controller);
-
-        /*$_out[] = ['id' => null, 'text' => GhostHtml::a(
-            '<i class="fa fa-plus"></i> Agregar',
-            ['/' . $module . '/' . $controller . '/create'],
-            [
-                'id' => 'use-modal',
-                'style' => 'padding:-10px',
-                'onClick' => 'return false;'
-            ]
-        )];*/
 
 
         foreach ($data as $key => $_data){
