@@ -107,9 +107,9 @@ class MagicSelector extends Select2
                 'delay' => 250,
                 'cache' => true,
                 'minimumInputLength' => 0,
-                'language' => [
+                /*'language' => [
                     'errorLoading' => new JsExpression("function () { return'" . Yii::t('mselect', 'waiting for results') . "'; }"),
-                ],
+                ],*/
                 'ajax' => [
                     'url' => \yii\helpers\Url::to(['/magic-select/magic-select/get-data']),
                     'dataType' => 'json',
