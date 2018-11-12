@@ -63,4 +63,4 @@ The second selector connects with the first, the third with the second....
 
 ## License
 
-**yii2-widget-select2** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
+**yii2-select** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
