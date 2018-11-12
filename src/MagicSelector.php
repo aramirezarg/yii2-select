@@ -8,8 +8,7 @@
 
 namespace magicsoft\select;
 
-use app\components\magic\MagicCrypto;
-use app\components\magic\MagicModel;
+use \magicsoft\MagicCrypto;
 use kartik\select2\Select2;
 use webvimark\modules\UserManagement\components\GhostHtml;
 use Yii;
@@ -333,7 +332,7 @@ class MagicSelector extends Select2
      */
     private function getLabel()
     {
-        return ArrayHelper::getValue($this->options, 'label', MagicModel::getSingularTitle($this->getControllerForModelByFind()));
+        return $this->model->getAttributeLabel($this->attribute);
     }
 
     /**
