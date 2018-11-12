@@ -1,6 +1,6 @@
 Magic select
 ============
-Magic Select
+Magic select fully utilizes the functionality of https://github.com/kartik-v/yii2-widget-select2, but extends its functionality to function dynamically without configuration.
 
 Installation
 ------------
@@ -21,14 +21,13 @@ or add
 
 to the require section of your `composer.json` file.
 
-k
 Usage
 -----
 
 You can use directly from a form, the widget will dynamically build the selector with dynamic query.
 
 ```php
-<?= $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelector::className(), [])?>
+<?=$form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelector::className(), [])?>
 
 With this configuration, the witget assumes that its fields of search and return of data are: 'name' or 'description'
 ```
@@ -45,17 +44,19 @@ columnDescription: This can will be field in the table or function in model.
 
 Configure multiples select with parent select
 ```php
-This is a parent select
-<?= $form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelector::className(), [])?>
+//This is a parent select
+<?=$form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelector::className(), [])?>
 
+//This is a second select
 <?=$form->field($model, 'state_id')->widget(\magicsoft\select\MagicSelector::className(), [
      'parentRelation' => 'country'
 ])?>
 
+//This is a tree select
 <?=$form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelector::className(), [
      'parentRelation' => 'state'
 ])?>
 
-... More relation
+... More select
 ```
 The second selector connects with the first, the third with the second....
