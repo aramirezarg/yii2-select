@@ -38,8 +38,8 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelecto
      'searchColumns' => 'code,name,...',
      'columnDescription' => 'description' 
 ])?>
-searchColumns: one or more fiel, separed by ',';
-columnDescription: This can will be field in the table or function in model.
+//searchColumns: one or more fiel, separed by ',';
+//columnDescription: This can will be field in the table or function in model.
 ```
 
 Configure multiples select with parent select
@@ -50,7 +50,7 @@ echo $form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelector:
 //This is a second select
 echo $form->field($model, 'state_id')->widget(\magicsoft\select\MagicSelector::className(), [
      'parentRelation' => 'country'
-])?>
+]);
 
 //This is a tree select
 echo $form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelector::className(), [
