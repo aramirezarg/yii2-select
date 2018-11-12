@@ -8,7 +8,6 @@
 
 namespace magicsoft\select;
 
-use \magicsoft\MagicCrypto;
 use kartik\select2\Select2;
 use webvimark\modules\UserManagement\components\GhostHtml;
 use Yii;
