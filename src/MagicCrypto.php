@@ -6,7 +6,7 @@
  * Time: 10:22 PM
  */
 
-namespace magicsoft;
+namespace magicsoft\select;
 
 
 class MagicCrypto
