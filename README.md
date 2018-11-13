@@ -38,7 +38,7 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelecto
      'searchColumns' => 'code,name,...',
      'columnDescription' => 'description' 
 ])?>
-//searchColumns: one or more fiel, separed by ',';
+//searchColumns: one or more field, separed by ',';
 //columnDescription: This can will be field in the table or function in model.
 ```
 

@@ -174,7 +174,7 @@ class MagicSelector extends Select2
     public function getModelForSearch()
     {
         $array = explode('\\', $this->model->getRelation($this->relation)->modelClass);
-        return strtolower(end($array));
+        return lcfirst(end($array));
     }
 
     /**
@@ -251,7 +251,7 @@ class MagicSelector extends Select2
      * @return string
      */
     private function getUrlForCreate(){
-        return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getModelForSearch())) . '/create';
+        return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getControllerForModelByFind())) . '/create';
     }
 
     /**
@@ -259,8 +259,9 @@ class MagicSelector extends Select2
      */
     private function getUrlForUpdate()
     {
-        return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getModelForSearch())) . '/update';
+        return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getControllerForModelByFind())) . '/update';
     }
+
 
     /**
      * @return false|mixed|string|string[]|null

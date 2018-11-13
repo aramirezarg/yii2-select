@@ -67,7 +67,7 @@ class MagicSelectController extends Controller
                 return $model->id;
             },
             function ($model) use($join, $column_description) {
-                return $join ? $model->{$join}->{$column_description} : $model->{$column_description};
+                return $column_description;// $join ? $model->{$join}->{$column_description} : $model->{$column_description};
             }
         );
 
