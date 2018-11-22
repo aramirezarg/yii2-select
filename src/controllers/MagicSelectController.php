@@ -1,6 +1,9 @@
 <?php
 
 namespace magicsoft\select\controllers;
+
+use app\modules\ficha\models\Municipio;
+use magicsoft\select\MagicSelectHelper;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
@@ -14,72 +17,53 @@ class MagicSelectController extends Controller
 
     /**
      * @param $class
-     * @param $search_columns
-     * @param $column_description
+     * @param $search_data
+     * @param $return_data
+     * @param null $parent
+     * @param null $parent_value
+     * @param null $own_function_search
      * @param null $join
-     * @param null $special_function_search
-     * @param null $parent_relation
-     * @param null $parent_relation_id
      * @param null $q
      * @return array
      * @throws NotFoundHttpException
      */
     public function actionGetData(
         $class,
-        $search_columns,
-        $column_description,
+        $search_data,
+        $return_data,
+        $parent = null,
+        $parent_value = null,
         $join = null,
-        $special_function_search = null,
-        $parent_relation = null,
-        $parent_relation_id = null,
+        $own_function_search = null,
         $q = null
     ){
         if(!Yii::$app->request->isAjax) throw new NotFoundHttpException('The requested page does not exist.');
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $class = MagicCrypto::decrypt($class);
-        $search_columns = MagicCrypto::decrypt($search_columns);
-        $column_description = MagicCrypto::decrypt($column_description);
-
-        $out = ['results' => ['id' => null, 'text' => '']];
+        $class = \magicsoft\select\MagicCrypto::decrypt($class);
+        $search_data = \magicsoft\select\MagicCrypto::decrypt($search_data);
+        $own_function_search = \magicsoft\select\MagicCrypto::decrypt($own_function_search);
 
         $join = strtolower($join);
 
         if(!is_null($q)) {
-            if ($special_function_search) {
-                $resultModel = $class::{$special_function_search}($q);
+            if ($own_function_search) {
+                $resultModel = $class::{$own_function_search}($q);
             } else {
                 $resultModel = $class::find();
 
                 if ($join) $resultModel->joinWith($join);
 
-                $resultModel->where(['like', ($join ? $join . '.' : '') . ' concat(' . $search_columns . ')', $q]);
+                $resultModel->where(['like', ($join ? $join . '.' : '') . ' concat(' . $search_data . ')', $q]);
             }
         }else{
             $resultModel = $class::find();
         }
 
-        if ($parent_relation) $resultModel->andWhere([$parent_relation . '_id' => $parent_relation_id]);
+        if ($parent) $resultModel->andWhere([$parent . '_id' => $parent_value]);
+
         $resultModel->limit(20);
 
-        $data = ArrayHelper::map( $resultModel->all(),
-            function ($model){
-                return $model->id;
-            },
-            function ($model) use($join, $column_description) {
-                return $column_description;// $join ? $model->{$join}->{$column_description} : $model->{$column_description};
-            }
-        );
-
-        $_out = [];
-
-
-        foreach ($data as $key => $_data){
-            $_out[] = ['id' => $key, 'text' => $_data];
-        }
-
-        $out['results'] = $_out;
-
-        return $out;
+        return MagicSelectHelper::getDataSelect($resultModel, $join, $return_data);
     }
 }

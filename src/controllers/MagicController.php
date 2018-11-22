@@ -7,6 +7,7 @@
 
 namespace magicsoft\select\controllers;
 
+use magicsoft\select\MagicSelectHelper;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
@@ -44,7 +45,7 @@ trait MagicController
     /*
      * $options = [
      *      'view'      => null or 'string',    //view to render other view
-     *      'mode'      => [true or false, ['relationOne', 'relationTwo', '...']], //[0] = Define save or saveAll, [1] = Define skeepRelations
+     *      'mode'      => [true or false, ['relationOne', 'relationTwo', '...']], //[0] = Define save or saveAll, [1] = Define relation to save in 0 = true
      *      'redirect'  => [
      *          'action'    => string,  //action in controller
      *          'param'     => string,  //param in actionController
@@ -82,10 +83,8 @@ trait MagicController
 
         $view                   = ArrayHelper::getValue($options, 'view', null);
         $mode                   = ArrayHelper::getValue($options, 'mode', [false, []]);
-        $image                  = ArrayHelper::getValue($options, 'image', null);
         $redirect               = ArrayHelper::getValue($options, 'redirect', null);
         $returnUrl              = ArrayHelper::getValue($options, 'returnUrl', null);
-        $sub_model_update       = ArrayHelper::getValue($options, 'sub_model_update', []);
         $call_back_functions    = ArrayHelper::getValue($options, 'call_back_functions', []);
 
         $load = $mode[0] ? 'loadAll' : 'load';
@@ -93,33 +92,9 @@ trait MagicController
 
         if( $model->{$load}(Yii::$app->request->post())) {
             $thisTrans = Yii::$app->getDb()->beginTransaction();
-            if( $model->{$save}($save == 'saveAll' ? $this->getOnlyRelationsUpdate($model, $mode[1]) : true)) {
 
-                if(is_array($image)){
-                    $path = Yii::getAlias($image['path']);
-                    if (!file_exists($path)) {
-                        mkdir($path, 0777, true);
-                    }
-
-                    $__model = ArrayHelper::getValue($image, 'model', null);
-                    $_model = $__model ? $model->{$__model} : $model;
-
-                    $_model->{$image['attribute']} = UploadedFile::getInstance($_model, $image['attribute']);
-
-                    if($_model->{$image['attribute']}) {
-                        $_model->{$image['attribute']}->saveAs($path . $_model->{$image['id']} . '.' . 'jpg');
-                        \webvimark\image\Image::factory($path . $_model->{$image['id']} . '.' . 'jpg')->resize(128, 128)->save($path . $_model->{$image['id']} . '-mini.' . 'jpg');
-                    }
-                }
-
-                foreach ($sub_model_update as $sub_model){
-                    if($sub_model && !$this->saveUsingAudit($sub_model)){
-                        $thisTrans->rollBack();
-                        return $this->responseError($sub_model);
-                        break;
-                    }
-                }
-
+            if( $model->{$save}($save == 'saveAll' ? $this->getOnlyRelationsUpdate($model, $mode[1]) : true))
+            {
                 foreach ($call_back_functions as $function){
                     $params = ArrayHelper::getValue($function, 'params', []);
                     if(!$function['model']->{$function['function']}($params)){
@@ -155,15 +130,13 @@ trait MagicController
                             return $this->responseSuccess($setUrl);
                         }
 
-                        $magic_response_attribute_id = $this->getParam('magic_response_attribute_id');
-
                         $magic_response = [];
-                        if($magic_response_attribute_id){
+                        if($magic_response_attribute_id = $this->getParam('magic_response_attribute_id')){
                             $magic_response = [
                                 'magicResponseSet' => true,
                                 'magic_response_attribute_id' => $magic_response_attribute_id,
                                 'magic_response_attribute_id_value' => $model->id,
-                                'magic_response_attribute_value' => $model->{$this->getParam('magic_response_attribute_value')}
+                                'magic_response_attribute_value' => MagicSelectHelper::getDataDescription($model, $this->getParam('magic_response_attribute_value'))
                             ];
                         }
 
@@ -193,20 +166,6 @@ trait MagicController
     }
 
     /**
-     * @param $models
-     * @return bool
-     */
-    public function saveInSeries($models){
-        foreach ($models as $model){
-            if(!$model->save(true)){
-                return $model;
-                break;
-            }
-        }
-        return true;
-    }
-
-    /**
      * @param $model
      * @param $relationsUpdated
      * @return array
@@ -216,15 +175,6 @@ trait MagicController
         return array_diff(array_keys($allRelations), $relationsUpdated);
     }
 
-    protected function saveUsingAudit($model, $mode = 'save', $skippedRelations = []){
-        $isNewRecord = ($model && $model->isNewRecord);
-
-        if($model && $model->{$mode}($mode == 'saveAll' ? $skippedRelations : true)){
-            //Audit::newAction( $model, $this, $isNewRecord );
-            return true;
-        }
-        return false;
-    }
     /**
      * @param $view
      * @param array $params
@@ -237,10 +187,6 @@ trait MagicController
         if ( $modal && Yii::$app->request->isAjax ) {
             return $this->renderAjax($view, $params);
         } else {
-            if(!\magicsoft\select\MagicModel::isFreeAjax(Yii::$app->controller->id, $this->action->id)){
-                return $this->pageNotFound();
-                //throw new NotFoundHttpException($this->render('@app/views/layouts/error/404error'));
-            }
             return $this->render($view, $params);
         }
     }
@@ -263,7 +209,7 @@ trait MagicController
                 'data'  => (( $data && is_array( $data ) ) ? $data : $this->getErrors( $model ? $model->getErrors() : null ) )
             ], $params );
         }elseif ($target !== '_blank'){
-            throw new ForbiddenHttpException(ArrayHelper::getValue($data, 'data', 'La operación no pudo completarse.'));
+            throw new ForbiddenHttpException(ArrayHelper::getValue($data, 'data', 'The operation was not completed.'));
         }
     }
 
@@ -274,8 +220,8 @@ trait MagicController
             return array_merge([
                 'error' => false,
                 'data'  => [
-                    'title' => 'Completado',
-                    'data'  => 'La operación se completó exitosamente'
+                    'title' => 'Completed',
+                    'data'  => 'The operation was completed successfully.'
                 ]
             ], $params);
         }elseif ($target !== '_blank'){
@@ -283,12 +229,16 @@ trait MagicController
         }
     }
 
+    public function requestIsAjax(){
+        return Yii::$app->request->isAjax;
+    }
+
     protected function successMgs($msg = null, $title = null)
     {
         \Yii::$app->getSession()->setFlash('success', [
             'type' => 'success',
-            'message' => ($msg)? $msg : 'Registro guardado exitosamente',
-            'title' => ($title)? $title : 'Registro Guardado',
+            'message' => ($msg)? $msg : 'Completed',
+            'title' => ($title)? $title : 'The operation was not completed.',
         ]);
     }
 
@@ -296,12 +246,8 @@ trait MagicController
     {
         \Yii::$app->getSession()->setFlash('success', [
             'type' => 'danger',
-            'message' => ($msg)? $msg : 'El registro no se guardó, por favor vuelva a intentarlo',
-            'title' => ($title)? $title : 'Intente Nuevamente',
+            'message' => ($msg)? $msg : 'Not completed',
+            'title' => ($title)? $title : 'The operation was not completed.',
         ]);
-    }
-
-    public function requestIsAjax(){
-        return Yii::$app->request->isAjax;
     }
 }
