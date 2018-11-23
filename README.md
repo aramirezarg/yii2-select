@@ -34,7 +34,7 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelect:
 
 But you can configure your own search and data return fields
 ```php
-echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelector::className(), [
+echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelect::className(), [
      'searchData' => 'code,name,...',
      'returnData' => 'join:code,description' 
 ])?>
@@ -45,15 +45,15 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelecto
 Configure multiples select with parent select
 ```php
 //This is a parent select
-echo $form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelector::className(), []);
+echo $form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelect::className(), []);
 
 //This is a second select
-echo $form->field($model, 'state_id')->widget(\magicsoft\select\MagicSelector::className(), [
+echo $form->field($model, 'state_id')->widget(\magicsoft\select\MagicSelect::className(), [
      'parent' => 'country'
 ]);
 
 //This is a tree select
-echo $form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelector::className(), [
+echo $form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelect::className(), [
      'parent' => 'state'
 ]);
 
@@ -64,3 +64,7 @@ The second select connects with the first, the third with the second....
 ## License
 
 **MagicSelect** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
+
+
+**Pending documentation,**
+**Pending load other library**

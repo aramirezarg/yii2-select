@@ -131,12 +131,11 @@ trait MagicController
                         }
 
                         $magic_response = [];
-                        if($magic_response_attribute_id = $this->getParam('magic_response_attribute_id')){
+                        if($magic_select_attribute = $this->getParam('magic_select_attribute')){
                             $magic_response = [
-                                'magicResponseSet' => true,
-                                'magic_response_attribute_id' => $magic_response_attribute_id,
-                                'magic_response_attribute_id_value' => $model->id,
-                                'magic_response_attribute_value' => MagicSelectHelper::getDataDescription($model, $this->getParam('magic_response_attribute_value'))
+                                'magic_select_attribute' => $magic_select_attribute,
+                                'magic_select_value' => $model->id,
+                                'magic_select_text' => MagicSelectHelper::getDataDescription($model, $this->getParam('magic_select_return_data'))
                             ];
                         }
 

@@ -92,7 +92,7 @@ class MagicSelect extends Select2
         $this->setSearchData();
         $this->setReturnData();
 
-        $this->theme = isset($this->theme) ? $this->theme : self::THEME_DEFAULT;
+        $this->theme = isset($this->theme) ? $this->theme : self::THEME_KRAJEE;
 
         $this->initValueText = $this->getValue();
 
@@ -106,7 +106,6 @@ class MagicSelect extends Select2
 
         $this->pluginOptions = array_merge(
             [
-                //'style' => 'font-size:45px;',
                 'disabled' => $this->isDisabled(),
                 'allowClear' => true,
                 'delay' => 250,
@@ -309,30 +308,35 @@ class MagicSelect extends Select2
                 'content' => Html::tag('i', '', ['class' => MagicSelectHelper::getIcon($this->getControllerForSearchModel())])
             ],
             'append' => $this->setButtons ? [
-                'content' => ($this->subModelIsActive() ? GhostHtml::a(
+                'content' => '<div>' .
+                    GhostHtml::a(
                         '<span class="glyphicon glyphicon-pencil"></span>',
-                        [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
-                        [
-                            'id' => 'magic-modal',
-                            'onClick' => 'return false;',
-                            'class' => 'btn btn-primary btn-group btn-flat',
-                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', ''),
-                            'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', '')
-                        ]
-                    ) : '') . GhostHtml::a(
-                        '<span class="glyphicon glyphicon-plus"></span>',
-                        [$this->getCreateUrl(),
-                            (!$this->parent ? 'magic_response_attribute_id' : '') => $this->getThisSelectId(),
-                            (!$this->parent ? 'magic_response_attribute_value' : '') => MagicCrypto::encrypt($this->returnData)
+                        [$this->getUpdateUrl(),
+                            'id' => ($this->model ? $this->model->{$this->attribute} : null),
+                            'magic_select_attribute' => $this->getThisSelectId(),
+                            'magic_select_return_data' => MagicCrypto::encrypt($this->returnData)
                         ],
                         [
                             'id' => 'magic-modal',
                             'onClick' => 'return false;',
-                            'class' => 'btn btn-success btn-group btn-flat btn-create-for-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
-                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '{"confirmToLoad":false}'),
-                            'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:_magicSelect_set' . $this->getModelForSearch() . 'OnForm()'))
+                            'class' => 'btn btn-primary btn-flat btn-update-for-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
+                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '')
                         ]
-                    ),
+                    ).
+                    GhostHtml::a(
+                        '<span class="glyphicon glyphicon-plus"></span>',
+                        [$this->getCreateUrl(),
+                            (!$this->parent ? 'magic_select_attribute' : '') => $this->getThisSelectId(),
+                            (!$this->parent ? 'magic_select_return_data' : '') => MagicCrypto::encrypt($this->returnData)
+                        ],
+                        [
+                            'id' => 'magic-modal',
+                            'onClick' => 'return false;',
+                            'class' => 'btn btn-success btn-flat btn-create-for-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
+                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '{"confirmToLoad":false}'),
+                            'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:_magicSelect_set' . $this->getModelForSearch() . 'OnForm()')),
+                        ]
+                    ) . '</div>',
                 'asButton' => true
             ] : ''
         ];
@@ -376,14 +380,12 @@ class MagicSelect extends Select2
         $select_id = $this->getThisSelectId();
 
         $js = <<< JS
-            $( "#{$this->getParentAttributeId()}" ).change(function() {
-                $('#{$select_id}').html('').prop('disabled', ($(this).find("option:selected" ).val() === ''));
+            $( "#{$this->getParentAttributeId()}" ).change(function(){
+                val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
                 
-                if($(this).find("option:selected" ).val() === ''){
-                    $('.btn-create-for-$select_id').addClass('disabled');
-                }else{
-                    $('.btn-create-for-$select_id').removeClass('disabled');
-                }
+                $('#{$select_id}').html('').prop('disabled', (val === ''));
+                $('.btn-create-for-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
+                $('.btn-update-for-$select_id').removeClass('disabled').addClass('disabled');
             });
             
             function get{$this->parent}Value(){
@@ -398,6 +400,8 @@ JS;
         $attribute_on_form = strtolower($model_for_search_tostring . '-' . $this->getLastSearchField());
         $var_for_writing_data = '_magicSelect_' . $model_for_search_tostring . 'WrittenText';
 
+        $params_url = '&magic_select_attribute=' . $this->getThisSelectId() . '&magic_select_return_data=' . MagicCrypto::encrypt($this->returnData);
+
         $js = <<< JS
             var $var_for_writing_data = '';
             function _magicSelect_set{$model_for_search_tostring}WritingText(value){
@@ -405,8 +409,13 @@ JS;
             }
             
             function _magicSelect_set{$model_for_search_tostring}OnForm(){
-                $('#{$attribute_on_form}').val($var_for_writing_data); $var_for_writing_data = '';
+                $('#{$attribute_on_form}').val($var_for_writing_data).focus(); $var_for_writing_data = '';
             }
+            
+            $( "#{$this->getThisSelectId()}" ).change(function(){
+                val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
+                $('.btn-update-for-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === '' ? 'disabled' : '').prop("href", '{$this->getUpdateUrl()}?id=' + val + '{$params_url}');
+            });
 JS;
         $this->view->registerJs($js, View::POS_END);
     }
