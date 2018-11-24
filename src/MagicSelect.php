@@ -115,7 +115,7 @@ class MagicSelect extends Select2
                     'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
                     'dataType' => 'json',
                     'data' => new JsExpression(
-                        'function(params) {' . ($this->setButtons ? $this->getModelForSearch() . 'WritingText(params.term);' : '') .
+                        'function(params) {_magicSelect_set' . $this->getModelForSearch() . 'WritingText(params.term);' .
                         'return {' .
                         'q:params.term,' .
                         $this->getClasAsParam() .
@@ -137,7 +137,7 @@ class MagicSelect extends Select2
 
         $this->setAddon();
 
-        if($this->setButtons) $this->registerThisJs();
+        $this->registerThisJs();
 
         if($this->parent) $this->registerParentFuctionJs();
     }
