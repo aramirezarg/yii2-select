@@ -21,8 +21,7 @@ or add
 
 to the require section of your `composer.json` file.
 
-Usage
------
+#Usage
 
 You can use directly from a form, the widget will dynamically build the selector with dynamic query.
 
@@ -38,11 +37,13 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelect:
      'searchData' => 'code,name,...',
      'returnData' => 'join:code,description' 
 ])?>
-//searchData: one or more field, separed by ',';
-//returnData: this can take tree options: join: join the a few fields or attributes; attr: attributes in model or fiel: one field in bd.
 ```
+**searchData** one or more field, separed by ','. <br />
+**returnData** this can take tree options: ***join***: join a few fields or attributes, ***attr*** attributes in model, ***field*** one field in bd.
 
-Configure multiples select with parent select
+
+#####Configure multiples select with parent select
+
 ```php
 //This is a parent select
 echo $form->field($model, 'country_id')->widget(\magicsoft\select\MagicSelect::className(), []);
@@ -61,10 +62,34 @@ echo $form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelect::
 ```
 The second select connects with the first, the third with the second....
 
-## License
+
+## Module
+Setup the module in your Yii configuration file with a name magicsoft as shown below.
+
+```php
+'modules'=>[
+   'magicsoft'=>[
+        'class' => \magicsoft\select\Module::className()
+        // other settings (refer documentation)
+    ]
+],
+```
+
+## Your controller
+Magic Select automatically manages the editing and insertion forms, so configuration must be used in your controller.
+
+```php
+use magicsoft\select\controllers\MagicController;
+
+class TestController extends Controller
+{
+    use MagicController;
+    
+    public function actionCreate(){
+        return $this->save(new Test());
+    }
+}
+```
+#License
 
 **MagicSelect** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
-
-
-**Pending documentation,**
-**Pending load other library**
