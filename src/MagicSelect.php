@@ -112,7 +112,7 @@ class MagicSelect extends Select2
                 'cache' => true,
                 'minimumInputLength' => 0,
                 'ajax' => [
-                    'url' => \yii\helpers\Url::to(['/magic-select/magic-select/get-data']),
+                    'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
                     'dataType' => 'json',
                     'data' => new JsExpression(
                         'function(params) {_magicSelect_set' . $this->getModelForSearch() . 'WritingText(params.term);' .
@@ -137,7 +137,7 @@ class MagicSelect extends Select2
 
         $this->setAddon();
 
-        $this->registerThisJs();
+        if($this->setButtons) $this->registerThisJs();
 
         if($this->parent) $this->registerParentFuctionJs();
     }
