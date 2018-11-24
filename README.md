@@ -90,6 +90,20 @@ class TestController extends Controller
     }
 }
 ```
+
+In your views (form for create or update data)
+
+```php
+<?php
+$form = \magicsoft\form\MagicForm::begin([
+    'model' => $model,
+]);
+
+echo $form->field($model, 'name')->textInput(['maxlength' => true, 'placeholder' => 'Name']);
+
+$form::end();
+?>
+```
 #License
 
 **MagicSelect** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
