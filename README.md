@@ -1,4 +1,4 @@
-Magic select
+Magic select [Beta]
 ============
 Magic select fully utilizes the functionality of https://github.com/kartik-v/yii2-widget-select2, but extends its functionality to function dynamically without configuration.
 
@@ -42,7 +42,7 @@ echo $form->field($model, 'attribute_id')->widget(\magicsoft\select\MagicSelect:
 **returnData** this can take tree options: ***join***: join a few fields or attributes, ***attr*** attributes in model, ***field*** one field in bd.
 
 
-#####Configure multiples select with parent select
+####Configure multiples select with parent select
 
 ```php
 //This is a parent select
