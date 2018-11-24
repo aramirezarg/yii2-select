@@ -104,6 +104,8 @@ echo $form->field($model, 'name')->textInput(['maxlength' => true, 'placeholder'
 $form::end();
 ?>
 ```
+**Please see the documentation in https://github.com/aramirezarg/yii2-modal**
+
 #License
 
 **MagicSelect** is released under the BSD 3-Clause License. See the bundled `LICENSE.md` for details.
