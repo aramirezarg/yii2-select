@@ -135,11 +135,11 @@ class MagicSelect extends Select2
             $this->pluginOptions
         );
 
-        $this->addon = $this->getAddon();
+        $this->setAddon();
 
-        $this->registerWritingData();
+        $this->registerThisJs();
 
-        if($this->parent) $this->registerParentFuction();
+        if($this->parent) $this->registerParentFuctionJs();
     }
 
     private function getClasAsParam(){
@@ -270,7 +270,8 @@ class MagicSelect extends Select2
     /**
      * @return string
      */
-    private function getCreateUrl(){
+    private function getCreateUrl()
+    {
         return strtolower(
                 preg_replace(
                     '/(?<!^)([A-Z])/',
@@ -288,7 +289,6 @@ class MagicSelect extends Select2
         return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getControllerForSearchModel())) . '/update';
     }
 
-
     /**
      * @return false|mixed|string|string[]|null
      */
@@ -301,9 +301,9 @@ class MagicSelect extends Select2
     /**
      * @return array|string
      */
-    private function getAddon()
+    private function setAddon()
     {
-        return $this->addon ? $this->addon : [
+        $this->addon = $this->addon ? $this->addon : [
             'prepend' => [
                 'content' => Html::tag('i', '', ['class' => MagicSelectHelper::getIcon($this->getControllerForSearchModel())])
             ],
@@ -311,30 +311,25 @@ class MagicSelect extends Select2
                 'content' => '<div>' .
                     GhostHtml::a(
                         '<span class="glyphicon glyphicon-pencil"></span>',
-                        [$this->getUpdateUrl(),
-                            'id' => ($this->model ? $this->model->{$this->attribute} : null),
-                            'magic_select_attribute' => $this->getThisSelectId(),
-                            'magic_select_return_data' => MagicCrypto::encrypt($this->returnData)
-                        ],
+                        [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
                         [
                             'id' => 'magic-modal',
                             'onClick' => 'return false;',
                             'class' => 'btn btn-primary btn-flat btn-update-for-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
-                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '')
+                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
+                            'data-params' => '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData)
                         ]
                     ).
                     GhostHtml::a(
                         '<span class="glyphicon glyphicon-plus"></span>',
-                        [$this->getCreateUrl(),
-                            (!$this->parent ? 'magic_select_attribute' : '') => $this->getThisSelectId(),
-                            (!$this->parent ? 'magic_select_return_data' : '') => MagicCrypto::encrypt($this->returnData)
-                        ],
+                        [$this->getCreateUrl()],
                         [
                             'id' => 'magic-modal',
                             'onClick' => 'return false;',
                             'class' => 'btn btn-success btn-flat btn-create-for-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
-                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '{"confirmToLoad":false}'),
+                            'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:_magicSelect_set' . $this->getModelForSearch() . 'OnForm()')),
+                            'data-params' => (!$this->parent ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
                         ]
                     ) . '</div>',
                 'asButton' => true
@@ -355,14 +350,6 @@ class MagicSelect extends Select2
      */
     private function getPlaceHolder()
     {
-        return $this->getLabel();
-    }
-
-    /**
-     * @return mixed
-     */
-    private function getLabel()
-    {
         return $this->model->getAttributeLabel($this->attribute);
     }
 
@@ -374,7 +361,7 @@ class MagicSelect extends Select2
         return $this->model->formName() . '-' . $this->parent . '_id';
     }
 
-    private function registerParentFuction()
+    private function registerParentFuctionJs()
     {
         $static_parent_id_value = ($this->staticParentValue ? $this->staticParentValue : '$( "#' . $this->getParentAttributeId() . '").find("option:selected" ).val()');
         $select_id = $this->getThisSelectId();
@@ -395,12 +382,10 @@ JS;
         $this->view->registerJs($js, View::POS_END);
     }
 
-    private function registerWritingData(){
+    private function registerThisJs(){
         $model_for_search_tostring = $this->getModelForSearch();
         $attribute_on_form = strtolower($model_for_search_tostring . '-' . $this->getLastSearchField());
         $var_for_writing_data = '_magicSelect_' . $model_for_search_tostring . 'WrittenText';
-
-        $params_url = '&magic_select_attribute=' . $this->getThisSelectId() . '&magic_select_return_data=' . MagicCrypto::encrypt($this->returnData);
 
         $js = <<< JS
             var $var_for_writing_data = '';
@@ -413,8 +398,8 @@ JS;
             }
             
             $( "#{$this->getThisSelectId()}" ).change(function(){
-                val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
-                $('.btn-update-for-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === '' ? 'disabled' : '').prop("href", '{$this->getUpdateUrl()}?id=' + val + '{$params_url}');
+                val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : false ;
+                $('.btn-update-for-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === false ? 'disabled' : '').prop("href", '{$this->getUpdateUrl()}?id=' + val);
             });
 JS;
         $this->view->registerJs($js, View::POS_END);
