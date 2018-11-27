@@ -2,8 +2,8 @@
 
 namespace magicsoft\select\controllers;
 
-use app\modules\ficha\models\Municipio;
-use magicsoft\select\MagicSelectHelper;
+use magicsoft\base\MagicSelectHelper;
+use magicsoft\base\MagicCrypto;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
@@ -40,9 +40,9 @@ class MagicSelectController extends Controller
         if(!Yii::$app->request->isAjax) throw new NotFoundHttpException('The requested page does not exist.');
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
-        $class = \magicsoft\select\MagicCrypto::decrypt($class);
-        $search_data = \magicsoft\select\MagicCrypto::decrypt($search_data);
-        $own_function_search = \magicsoft\select\MagicCrypto::decrypt($own_function_search);
+        $class = MagicCrypto::decrypt($class);
+        $search_data = MagicCrypto::decrypt($search_data);
+        $own_function_search = MagicCrypto::decrypt($own_function_search);
 
         $join = strtolower($join);
 

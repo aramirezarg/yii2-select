@@ -10,6 +10,8 @@
 namespace magicsoft\select;
 
 use kartik\select2\Select2;
+use magicsoft\base\MagicCrypto;
+use magicsoft\base\MagicSelectHelper;
 use webvimark\modules\UserManagement\components\GhostHtml;
 use Yii;
 use yii\helpers\ArrayHelper;

@@ -7,7 +7,7 @@
 
 namespace magicsoft\select\controllers;
 
-use magicsoft\select\MagicSelectHelper;
+use magicsoft\base\MagicSelectHelper;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
