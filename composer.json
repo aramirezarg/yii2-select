@@ -13,7 +13,7 @@
     ],
     "require": {
         "yiisoft/yii2": "~2.0.0",
-        "kartik-v/yii2-magicsoft-base": "*",
+        "magicsoft/yii2-magicsoft-base": "*",
         "kartik-v/yii2-widget-select2": "*",
         "magicsoft/yii2-modal": "*"
     },
