@@ -15,8 +15,8 @@
         "yiisoft/yii2": "~2.0.0",
         "magicsoft/yii2-magicsoft-base": "*",
         "magicsoft/yii2-modal": "*",
-        "kartik-v/yii2-widget-select2": "*",
-        "kartik-v/yii2-grid": "@dev"
+        "kartik-v/yii2-widget-select2": "~2.0",
+        "kartik-v/yii2-grid": "~3.1"
     },
     "autoload": {
         "psr-4": {
