@@ -60,6 +60,24 @@ echo $form->field($model, 'province_id')->widget(\magicsoft\select\MagicSelect::
 
 //... More select
 ```
+
+####Use magic select in gridView (valid for gridView of Krajee)
+```php
+$gridColumns = [
+    ['attribute' => 'id', 'visible' => false],
+    'name',
+    \magicsoft\select\MagicSelect::getDataForGrid([
+        'model' => $searchModel,
+        'attribute' => 'country_id'
+    ]),
+    \magicsoft\select\MagicSelect::getDataForGrid([
+        'model' => $searchModel,
+        'attribute' => 'state_id',
+        'parent' => 'cuntry'
+    ]),
+    ... more columns
+]
+```
 The second select connects with the first, the third with the second....
 
 
@@ -104,7 +122,7 @@ echo $form->field($model, 'name')->textInput(['maxlength' => true, 'placeholder'
 $form::end();
 ?>
 ```
-**Please see the documentation in https://github.com/aramirezarg/yii2-modal**
+**Please see the documentation of https://github.com/aramirezarg/yii2-modal**
 
 #License
 
