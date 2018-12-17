@@ -79,7 +79,7 @@ trait MagicController
     protected function save($model, $options = [])
     {
         if(!$model) return $this->pageNotFound();
-        $modal = $this->getParam('magic_modal_name');
+        $modal = $this->getParam('magic_modal');
 
         $view                   = ArrayHelper::getValue($options, 'view', null);
         $mode                   = ArrayHelper::getValue($options, 'mode', [false, []]);
@@ -182,7 +182,7 @@ trait MagicController
      */
     protected function renderIsAjax($view, $params = [])
     {
-        $modal = $this->getParam('magic_modal_name');
+        $modal = $this->getParam('magic_modal');
         if ( $modal && Yii::$app->request->isAjax ) {
             return $this->renderAjax($view, $params);
         } else {

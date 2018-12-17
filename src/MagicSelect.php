@@ -123,14 +123,14 @@ class MagicSelect extends Select2
                     'data' => new JsExpression(
                         'function(params) {' . $this->getVarForWritingText() . '=params.term;' .
                         'return {' .
-                            'q:params.term,' .
-                            $this->getClasAsParam() .
-                            $this->getSearchDataAsParam() .
-                            $this->getReturnDataAsParam() .
-                            $this->getJoinAsParam() .
-                            $this->getOwnFunctionSearchAsParam() .
-                            $this->getParentAsParam() .
-                            '};' .
+                        'q:params.term,' .
+                        $this->getClasAsParam() .
+                        $this->getSearchDataAsParam() .
+                        $this->getReturnDataAsParam() .
+                        $this->getJoinAsParam() .
+                        $this->getOwnFunctionSearchAsParam() .
+                        $this->getParentAsParam() .
+                        '};' .
                         '}'
                     ),
                 ],
