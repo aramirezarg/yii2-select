@@ -13,7 +13,8 @@ use kartik\grid\GridView;
 use kartik\select2\Select2;
 use magicsoft\base\MagicCrypto;
 use magicsoft\base\MagicSelectHelper;
-use webvimark\modules\UserManagement\components\GhostHtml;
+use magicsoft\base\MagicSoftModule;
+use magicsoft\base\TranslationTrait;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
@@ -33,18 +34,19 @@ use yii\web\View;
 
 class MagicSelect extends Select2
 {
+    use TranslationTrait;
     /**
      * MagicSelect relation in your model
      */
     public $relation;
 
     /**
-     * MagicSelect searchColumns: Columns used to generate the search in the BD.
+     * MagicSelect searchData: Columns used to generate the search in the BD.
      */
     public $searchData;
 
     /**
-     * MagicSelect columnDescription is the attribute or function to get data result, can be the same searchColumn or a function in model.
+     * MagicSelect returnData is the attribute or function to get data result, can be the same searchData or a function in model.
      */
     public $returnData;
 
@@ -59,7 +61,7 @@ class MagicSelect extends Select2
     public $parent;
 
     /**
-     * MagicSelect parentId is the value_id for parent
+     * MagicSelect staticParentValue is the value of parent
      */
     public $staticParentValue;
 
@@ -84,6 +86,8 @@ class MagicSelect extends Select2
      */
     public function init()
     {
+        $this->initI18N(MagicSoftModule::getSorceLangage(), 'magicselect');
+
         parent::init();
         $this->setConfig();
     }
@@ -102,8 +106,8 @@ class MagicSelect extends Select2
         $this->options = array_merge(
             $this->options,
             [
-                'id'            => $this->getThisSelectId(),
-                'placeholder'   => $this->getPlaceHolder(),
+                'id' => $this->getThisSelectId(),
+                'placeholder' => $this->getPlaceHolder(),
             ]
         );
 
@@ -114,8 +118,8 @@ class MagicSelect extends Select2
                 'delay' => 250,
                 'cache' => true,
                 'minimumInputLength' => 0,
-                'language'              => [
-                    'errorLoading'  => new JsExpression("function () { return 'Witing for results...'; }"),
+                'language' => [
+                    'errorLoading' => new JsExpression("function () { return '" .  Yii::t('magicselect', 'Witing for results...') . "' ; }"),
                 ],
                 'ajax' => [
                     'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
@@ -163,13 +167,17 @@ class MagicSelect extends Select2
             'attribute' => $self->attribute,
             'label' => $self->getLabel(),
             'value' => function($model) use ($self){
-                return MagicSelectHelper::getDataDescription($model, $self->returnData);
+                return MagicSelectHelper::getDataDescription($model, MagicCrypto::encrypt($self->returnData));
             },
             'filterType' => GridView::FILTER_SELECT2,
-            'filter' => $self->model->{$self->attribute} ?
-                \yii\helpers\ArrayHelper::map(
-                    $self->model->{$self->relation}::find()->where(['id' => $self->model->{$self->attribute}])->all(), 'id', $self->getLastSearchField()
-                ) : null,
+            'filter' => $self->model->{$self->attribute} ? \yii\helpers\ArrayHelper::map($self->model->{$self->relation}::find()->where(['id' => $self->model->{$self->attribute}])->all(),
+                function($model) {
+                    return $model->id;
+                },
+                function($model) use($self) {
+                    return MagicSelectHelper::getDataDescription($model, MagicCrypto::encrypt($self->returnData));
+                }
+            ) : null,
             'filterWidgetOptions' => [
                 'pluginOptions' => [
                     'allowClear' => true,
@@ -372,22 +380,22 @@ class MagicSelect extends Select2
                         '<span class="glyphicon glyphicon-pencil"></span>',
                         [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
                         [
-                            'class' => 'magic-modal btn btn-primary btn-flat btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
+                            'class' => 'magic-modal initial btn btn-default btn-flat btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
-                            'data-params' => '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData)
+                            'data-params' => '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData),
                         ]
                     ) : '').
                     (!$user->can($this->getCreateUrl()) ? Html::a(
                         '<span class="glyphicon glyphicon-plus"></span>',
                         [$this->getCreateUrl()],
                         [
-                            'class' => 'magic-modal btn btn-success btn-flat btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
+                            'class' => 'magic-modal initial btn btn-default btn-flat btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:magicSelect_setTextSearched_ToForm_' . $this->getModelForSearch() . '()')),
                             'data-params' => (!$this->parent ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
                         ]
                     ) : '') . '</div>',
-                'asButton' => true
+                'asButton' => true,
             ] : ''
         ];
     }

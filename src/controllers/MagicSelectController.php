@@ -46,10 +46,10 @@ class MagicSelectController extends Controller
 
         $join = strtolower($join);
 
-        if(!is_null($q)){
+        if(!is_null($q)) {
             if ($own_function_search) {
                 $resultModel = $class::{$own_function_search}($q);
-            }else{
+            } else {
                 $resultModel = $class::find();
 
                 if ($join) $resultModel->joinWith($join);
@@ -62,7 +62,7 @@ class MagicSelectController extends Controller
 
         if ($parent) $resultModel->andWhere([$parent . '_id' => $parent_value]);
 
-        $resultModel->orderBy(['id'=>SORT_DESC])->limit(20);
+        $resultModel->limit(20);
 
         return MagicSelectHelper::getDataSelect($resultModel, $join, $return_data);
     }
