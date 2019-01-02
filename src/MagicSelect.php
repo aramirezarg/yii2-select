@@ -240,7 +240,7 @@ class MagicSelect extends Select2
      */
     private function getModule()
     {
-        foreach ($_class = explode('\\', $this->model->className()) as $key => $value){
+        foreach ($_class = explode('\\', $this->model->getRelation($this->relation)->modelClass) as $key => $value){
             if($value == 'modules'){
                 return ArrayHelper::getValue($_class, $key + 1, null);
                 break;
@@ -375,7 +375,7 @@ class MagicSelect extends Select2
                 'content' => Html::tag('i', '', ['class' => MagicSelectHelper::getIcon($this->getControllerForSearchModel())])
             ],
             'append' => $this->setButtons ? [
-                'content' => '<div>' .
+                'content' => '<div class="ms-btn-container">' .
                     (!$user->can($this->getUpdateUrl()) ? Html::a(
                         '<span class="glyphicon glyphicon-pencil"></span>',
                         [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
