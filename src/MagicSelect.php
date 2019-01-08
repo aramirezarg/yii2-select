@@ -207,7 +207,8 @@ class MagicSelect extends Select2
             'filterInputOptions' => [
                 'placeholder' => $self->getPlaceHolder(),
                 'id' => $self->getThisSelectId(),
-                'disabled' => $self->isDisabled()
+                'disabled' => $self->isDisabled(),
+                'style' => 'width: auto'
             ],
         ];
     }

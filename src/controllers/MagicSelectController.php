@@ -60,7 +60,7 @@ class MagicSelectController extends Controller
             $resultModel = $class::find();
         }
 
-        if ($parent) $resultModel->andWhere([$parent . '_id' => $parent_value]);
+        if ($parent) $resultModel->andWhere([\yii\helpers\BaseInflector::underscore($parent . '_id') => $parent_value]);
 
         $resultModel->limit(20);
 
