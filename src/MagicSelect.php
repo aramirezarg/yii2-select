@@ -80,6 +80,8 @@ class MagicSelect extends Select2
      */
     public $ownFunctionSearch;
 
+    public $fixCss = true;
+
     /**
      * @throws \ReflectionException
      * @throws \yii\base\InvalidConfigException
@@ -148,12 +150,14 @@ class MagicSelect extends Select2
         $this->setAddon();
 
         $this->registerThisJs();
+        if($this->fixCss) $this->registerCss();
 
         if($this->parent) $this->registerParentJs();
     }
 
     public static function getDataForGrid($options = []){
-        $self = new self($options);
+        $self = new self(array_merge($options, ['fixCss' => false]));
+        $self->setRelation();
         $self->registerThisJs();
 
         if($self->parent){
@@ -167,7 +171,7 @@ class MagicSelect extends Select2
             'attribute' => $self->attribute,
             'label' => $self->getLabel(),
             'value' => function($model) use ($self){
-                return MagicSelectHelper::getDataDescription($model, MagicCrypto::encrypt($self->returnData));
+                return MagicSelectHelper::getDataDescription($model->{$self->relation}, MagicCrypto::encrypt($self->returnData));
             },
             'filterType' => GridView::FILTER_SELECT2,
             'filter' => $self->model->{$self->attribute} ? \yii\helpers\ArrayHelper::map($self->model->{$self->relation}::find()->where(['id' => $self->model->{$self->attribute}])->all(),
@@ -224,7 +228,7 @@ class MagicSelect extends Select2
         return $this->ownFunctionSearch ? ',own_function_search:"' . MagicCrypto::encrypt($this->ownFunctionSearch) . '"' : '';
     }
     private function getParentAsParam(){
-        return $this->parent ? ',parent:"' . strtolower($this->parent) . '",parent_value:get' . $this->parent . 'Value()' : '';
+        return $this->parent ? ',parent:"' . $this->parent . '",parent_value:get' . $this->parent . 'Value()' : '';
     }
 
     /**
@@ -257,6 +261,10 @@ class MagicSelect extends Select2
         }
     }
 
+    public function getParentAttribute(){
+        return \yii\helpers\BaseInflector::underscore($this->parent . '_id');
+    }
+
     /**
      * @return string
      */
@@ -271,7 +279,7 @@ class MagicSelect extends Select2
      */
     private function isDisabled()
     {
-        return ($this->parent && ($this->model->{lcfirst($this->parent . '_id')})) > 0 ? false :
+        return ($this->parent && ($this->model->{$this->getParentAttribute()})) > 0 ? false :
             ($this->parent && !$this->staticParentValue) || ArrayHelper::getValue($this->options, 'disabled', false);
     }
 
@@ -311,7 +319,7 @@ class MagicSelect extends Select2
                 $class = new $_relationClass;
             }
 
-            $this->searchData = $class->hasProperty('name') ? 'name' : $class->hasProperty('description') ? 'description' : null;
+            $this->searchData = ($class->hasProperty('name') ? 'name' : ($class->hasProperty('description') ? 'description' : null));
         }
     }
 
@@ -427,9 +435,9 @@ class MagicSelect extends Select2
     /**
      * @return string
      */
-    private function getParentAttributeId()
+    private function getParentAttributeIdForm()
     {
-        return strtolower($this->model->formName() . '-' . $this->parent . '_id');
+        return strtolower($this->model->formName() . '-' . $this->getParentAttribute());
     }
 
     private function getVarForWritingText(){
@@ -438,11 +446,11 @@ class MagicSelect extends Select2
 
     private function registerParentJs()
     {
-        $static_parent_id_value = ($this->staticParentValue ? $this->staticParentValue : '$( "#' . $this->getParentAttributeId() . '").find("option:selected" ).val()');
+        $static_parent_id_value = ($this->staticParentValue ? $this->staticParentValue : '$( "#' . $this->getParentAttributeIdForm() . '").find("option:selected" ).val()');
         $select_id = $this->getThisSelectId();
 
         $js = <<< JS
-    $("#{$this->getParentAttributeId()}").change(function(){
+    $("#{$this->getParentAttributeIdForm()}").change(function(){
         val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
         
         $('#{$select_id}').empty().html('').prop('disabled', (val === ''));
@@ -477,5 +485,14 @@ JS;
     });
 JS;
         $this->view->registerJs($js, View::POS_END);
+    }
+
+    private function registerCss(){
+        $css = <<< CSS
+        .select2-container--krajee {
+            z-index: 10000;
+        }
+CSS;
+        $this->view->registerCss($css);
     }
 }
