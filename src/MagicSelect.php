@@ -80,8 +80,6 @@ class MagicSelect extends Select2
      */
     public $ownFunctionSearch;
 
-    public $fixCss = true;
-
     /**
      * @throws \ReflectionException
      * @throws \yii\base\InvalidConfigException
@@ -100,8 +98,6 @@ class MagicSelect extends Select2
         $this->setRelation();
         $this->setSearchData();
         $this->setReturnData();
-
-        $this->theme = isset($this->theme) ? $this->theme : self::THEME_KRAJEE;
 
         $this->initValueText = $this->getValue();
 
@@ -150,13 +146,12 @@ class MagicSelect extends Select2
         $this->setAddon();
 
         $this->registerThisJs();
-        if($this->fixCss) $this->registerCss();
 
         if($this->parent) $this->registerParentJs();
     }
 
-    public static function getDataForGrid($options = []){
-        $self = new self(array_merge($options, ['fixCss' => false]));
+    public static function getColumn($options = []){
+        $self = new self($options);
         $self->setRelation();
         $self->registerThisJs();
 
@@ -384,21 +379,21 @@ class MagicSelect extends Select2
                 'content' => Html::tag('i', '', ['class' => MagicSelectHelper::getIcon($this->getControllerForSearchModel())])
             ],
             'append' => $this->setButtons ? [
-                'content' => '<div class="ms-btn-container">' .
+                'content' => '<div>' .
                     (!$user->can($this->getUpdateUrl()) ? Html::a(
-                        '<span class="glyphicon glyphicon-pencil"></span>',
+                        '<span class="glyphicon glyphicon-pencil fas fa-pencil-alt"></span>',
                         [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
                         [
-                            'class' => 'magic-modal initial btn btn-default btn-flat btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
+                            'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'data-params' => '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData),
                         ]
                     ) : '').
                     (!$user->can($this->getCreateUrl()) ? Html::a(
-                        '<span class="glyphicon glyphicon-plus"></span>',
+                        '<span class="glyphicon glyphicon-plus fas fa-plus"></span>',
                         [$this->getCreateUrl()],
                         [
-                            'class' => 'magic-modal initial btn btn-default btn-flat btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
+                            'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:magicSelect_setTextSearched_ToForm_' . $this->getModelForSearch() . '()')),
                             'data-params' => (!$this->parent ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
@@ -451,17 +446,17 @@ class MagicSelect extends Select2
         $select_id = $this->getThisSelectId();
 
         $js = <<< JS
-    $("#{$this->getParentAttributeIdForm()}").change(function(){
-        val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
+        $("#{$this->getParentAttributeIdForm()}").change(function(){
+            val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
+            
+            $('#{$select_id}').empty().html('').prop('disabled', (val === ''));
+            $('.btn-for-create-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
+            $('.btn-for-update-$select_id').addClass('disabled');
+        });
         
-        $('#{$select_id}').empty().html('').prop('disabled', (val === ''));
-        $('.btn-for-create-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
-        $('.btn-for-update-$select_id').addClass('disabled');
-    });
-    
-    function get{$this->parent}Value(){
-        return $static_parent_id_value;
-    }
+        function get{$this->parent}Value(){
+            return $static_parent_id_value;
+        }
 JS;
         $this->view->registerJs($js, View::POS_END);
     }
@@ -486,14 +481,5 @@ JS;
     });
 JS;
         $this->view->registerJs($js, View::POS_END);
-    }
-
-    private function registerCss(){
-        $css = <<< CSS
-        .select2-container--krajee {
-            z-index: 10000;
-        }
-CSS;
-        $this->view->registerCss($css);
     }
 }

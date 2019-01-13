@@ -87,10 +87,27 @@ Setup the module in your Yii configuration file with a name magicsoft as shown b
 ```php
 'modules'=>[
    'magicsoft'=>[
-        'class' => \magicsoft\select\Module::className()
-        // other settings (refer documentation)
+        'class' => \magicsoft\select\Module::className(),
+        'encryptOptions' => [
+            'secretKey' => '205bdf05272043d',
+            'secretIv' => '205bdf0512ea37e',
+        ],
+        'modelsOptions' => [
+            'default' => [
+                'icon' => 'fa fa-list',
+                'modal' => [true, 'free' => ['index', 'create']]
+            ],
+            'location' => [
+                'icon' => 'fa fa-map-marker',
+                'title' => ['singular' => 'Location', 'plural' => 'Locations'],
+                'group' => ['parent' => 'location', 'shield' => ''],
+                'modal' => [true, 'free' => ['index']]
+            ],
+        ]
     ]
 ],
+//The encryptOptions, you can use your own values
+//The modelsOptions, set the particular values for the views
 ```
 
 ## Your controller
