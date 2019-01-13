@@ -381,7 +381,7 @@ class MagicSelect extends Select2
             'append' => $this->setButtons ? [
                 'content' => '<div>' .
                     (!$user->can($this->getUpdateUrl()) ? Html::a(
-                        '<span class="glyphicon glyphicon-pencil fas fa-pencil-alt"></span>',
+                        '<span class="fa fa-pencil fas fa-pencil-alt"></span>',
                         [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
                         [
                             'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
@@ -390,7 +390,7 @@ class MagicSelect extends Select2
                         ]
                     ) : '').
                     (!$user->can($this->getCreateUrl()) ? Html::a(
-                        '<span class="glyphicon glyphicon-plus fas fa-plus"></span>',
+                        '<span class="fa fa-plus fas fa-plus"></span>',
                         [$this->getCreateUrl()],
                         [
                             'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
