@@ -119,23 +119,7 @@ class MagicSelect extends Select2
                 'language' => [
                     'errorLoading' => new JsExpression("function () { return '" .  Yii::t('magicselect', 'Witing for results...') . "' ; }"),
                 ],
-                'ajax' => [
-                    'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
-                    'dataType' => 'json',
-                    'data' => new JsExpression(
-                        'function(params) {' . $this->getVarForWritingText() . '=params.term;' .
-                        'return {' .
-                        'q:params.term,' .
-                        $this->getClasAsParam() .
-                        $this->getSearchDataAsParam() .
-                        $this->getReturnDataAsParam() .
-                        $this->getJoinAsParam() .
-                        $this->getOwnFunctionSearchAsParam() .
-                        $this->getParentAsParam() .
-                        '};' .
-                        '}'
-                    ),
-                ],
+                'ajax' => $this->getAjaxOptions(),
                 'escapeMarkup' => new JsExpression('function (markup) { return markup; }'),
                 'templateResult' => new JsExpression('function (response) { return response.text; }'),
                 'templateSelection' => new JsExpression('function (response) { return response.text; }'),
@@ -147,7 +131,7 @@ class MagicSelect extends Select2
 
         $this->registerThisJs();
 
-        if($this->parent) $this->registerParentJs();
+        if($this->getParent()) $this->registerParentJs();
     }
 
     public static function getColumn($options = []){
@@ -155,9 +139,9 @@ class MagicSelect extends Select2
         $self->setRelation();
         $self->registerThisJs();
 
-        if($self->parent){
+        if($self->getParent()){
             $self->registerParentJs();
-            if(!$self->model->{$self->attribute} || !$self->model->{$self->relation}::find()->where([$self->parent . '_id' => $self->model->{$self->parent . '_id'}])->all()){
+            if(!$self->model->{$self->attribute} || !$self->model->{$self->relation}::find()->where([$self->getParent() . '_id' => $self->model->{$self->getParent() . '_id'}])->all()){
                 $self->model->{$self->attribute} = null;
             }
         }
@@ -180,23 +164,7 @@ class MagicSelect extends Select2
             'filterWidgetOptions' => [
                 'pluginOptions' => [
                     'allowClear' => true,
-                    'ajax' => [
-                        'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
-                        'dataType' => 'json',
-                        'data' => new JsExpression(
-                            'function(params) {' .
-                            'return {' .
-                            'q:params.term,' .
-                            $self->getClasAsParam() .
-                            $self->getSearchDataAsParam() .
-                            $self->getReturnDataAsParam() .
-                            $self->getJoinAsParam() .
-                            $self->getOwnFunctionSearchAsParam() .
-                            $self->getParentAsParam() .
-                            '};' .
-                            '}'
-                        ),
-                    ],
+                    'ajax' => $self->getAjaxOptions(),
                 ],
             ],
             'filterInputOptions' => [
@@ -205,6 +173,26 @@ class MagicSelect extends Select2
                 'disabled' => $self->isDisabled(),
                 'style' => 'width: auto'
             ],
+        ];
+    }
+
+    private function getAjaxOptions(){
+        return [
+            'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
+            'dataType' => 'json',
+            'data' => new JsExpression(
+                'function(params) {' .
+                'return {' .
+                'q:params.term,' .
+                $this->getClasAsParam() .
+                $this->getSearchDataAsParam() .
+                $this->getReturnDataAsParam() .
+                $this->getJoinAsParam() .
+                $this->getOwnFunctionSearchAsParam() .
+                $this->getParentAsParam() .
+                '};' .
+            '}'
+            )
         ];
     }
 
@@ -224,7 +212,7 @@ class MagicSelect extends Select2
         return $this->ownFunctionSearch ? ',own_function_search:"' . MagicCrypto::encrypt($this->ownFunctionSearch) . '"' : '';
     }
     private function getParentAsParam(){
-        return $this->parent ? ',parent:"' . $this->parent . '",parent_value:get' . $this->parent . 'Value()' : '';
+        return $this->getParent() ? ',parent:"' . MagicCrypto::encrypt($this->getThisParentAttribute()) . '",parent_value:get' . $this->getParent() . 'Value()' : '';
     }
 
     /**
@@ -257,8 +245,21 @@ class MagicSelect extends Select2
         }
     }
 
-    public function getParentAttribute(){
-        return \yii\helpers\BaseInflector::underscore($this->parent . '_id');
+    public function getParentAttribute()
+    {
+        return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'attribute', null) : \yii\helpers\BaseInflector::underscore($this->parent . '_id');
+    }
+
+    public function getThisParentAttribute()
+    {
+        $default = \yii\helpers\BaseInflector::underscore($this->getParent() . '_id');
+
+        return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'thisAttribute', $default) : $default;
+    }
+
+    private function getParent()
+    {
+        return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'relation', null) : $this->parent;
     }
 
     /**
@@ -275,8 +276,8 @@ class MagicSelect extends Select2
      */
     private function isDisabled()
     {
-        return ($this->parent && ($this->model->{$this->getParentAttribute()})) > 0 ? false :
-            ($this->parent && !$this->staticParentValue) || ArrayHelper::getValue($this->options, 'disabled', false);
+        return ($this->getParent() && ($this->model->{$this->getParent()})) ? false :
+            ($this->getParent() && !$this->staticParentValue) || ArrayHelper::getValue($this->options, 'disabled', false);
     }
 
     /**
@@ -396,7 +397,7 @@ class MagicSelect extends Select2
                             'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:magicSelect_setTextSearched_ToForm_' . $this->getModelForSearch() . '()')),
-                            'data-params' => (!$this->parent ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
+                            'data-params' => (!$this->getParent() ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
                         ]
                     ) : '') . '</div>',
                 'asButton' => true,
@@ -451,12 +452,11 @@ class MagicSelect extends Select2
             
             $('#{$select_id}').empty().append($("<option>", {value: null, text: null})).val(null).prop('disabled', (val === '')).trigger('change');
             
-            //$('#{$select_id}').empty().html('').prop('disabled', (val === ''));
             $('.btn-for-create-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
             $('.btn-for-update-$select_id').addClass('disabled');
         });
         
-        function get{$this->parent}Value(){
+        function get{$this->getParent()}Value(){
             return $static_parent_id_value;
         }
 JS;
