@@ -449,7 +449,9 @@ class MagicSelect extends Select2
         $("#{$this->getParentAttributeIdForm()}").change(function(){
             val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
             
-            $('#{$select_id}').empty().html('').prop('disabled', (val === ''));
+            $('#{$select_id}').empty().append($("<option>", {value: null, text: null})).val(null).prop('disabled', (val === '')).trigger('change');
+            
+            //$('#{$select_id}').empty().html('').prop('disabled', (val === ''));
             $('.btn-for-create-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
             $('.btn-for-update-$select_id').addClass('disabled');
         });
