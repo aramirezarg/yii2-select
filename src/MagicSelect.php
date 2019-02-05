@@ -18,6 +18,7 @@ use magicsoft\base\TranslationTrait;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
 
@@ -345,7 +346,7 @@ class MagicSelect extends Select2
                 preg_replace(
                     '/(?<!^)([A-Z])/',
                     '-\\1',
-                    '/' . (($module = $this->getModule())  ? $module . '/' : '') . $this->getControllerForSearchModel()
+                    '/' . (($module = $this->getModule()) ? $module . '/' : '') . $this->getControllerForSearchModel()
                 )
             ) . '/create';
     }
@@ -355,7 +356,13 @@ class MagicSelect extends Select2
      */
     private function getUpdateUrl()
     {
-        return strtolower(preg_replace('/(?<!^)([A-Z])/', '-\\1', '/' . $this->getModule() . '/' . $this->getControllerForSearchModel())) . '/update';
+        return strtolower(
+                preg_replace(
+                    '/(?<!^)([A-Z])/',
+                    '-\\1',
+                    '/' . (($module = $this->getModule()) ? $module . '/' : '') . $this->getControllerForSearchModel()
+                )
+            ) . '/update';
     }
 
     /**
@@ -469,6 +476,8 @@ JS;
         $var_for_writing_data = $this->getVarForWritingText();
         $select_id = $this->getThisSelectId();
 
+        $updateUrl = Url::to([$this->getUpdateUrl()]);
+
         $js = <<< JS
         
     var $var_for_writing_data = '';
@@ -479,7 +488,7 @@ JS;
     
     $("#{$this->getThisSelectId()}").change(function(){
         val = (objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : false);
-        $('.btn-for-update-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === false ? 'disabled' : '').prop("href", '{$this->getUpdateUrl()}?id=' + val);
+        $('.btn-for-update-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === false ? 'disabled' : '').prop("href", '{$updateUrl}?id=' + val);
     });
 JS;
         $this->view->registerJs($js, View::POS_END);
