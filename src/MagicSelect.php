@@ -9,6 +9,8 @@
 
 namespace magicsoft\select;
 
+use foo\bar;
+use function GuzzleHttp\Psr7\str;
 use kartik\grid\GridView;
 use kartik\select2\Select2;
 use magicsoft\base\MagicCrypto;
@@ -340,15 +342,23 @@ class MagicSelect extends Select2
     /**
      * @return string
      */
+    private function getBaseControllerClass()
+    {
+        $base = strtolower (preg_replace(
+            '/(?<!^)([A-Z])/',
+            '-\\1',
+            '/' . (($module = $this->getModule()) ? $module . '/' : '') . $this->getControllerForSearchModel()
+        ));
+
+        return substr($base, 0, 2) == '/-' ? '/' . substr($base, 2, strlen ($base)) : $base;
+    }
+
+    /**
+     * @return string
+     */
     private function getCreateUrl()
     {
-        return strtolower(
-                preg_replace(
-                    '/(?<!^)([A-Z])/',
-                    '-\\1',
-                    '/' . (($module = $this->getModule()) ? $module . '/' : '') . $this->getControllerForSearchModel()
-                )
-            ) . '/create';
+        return $this->getBaseControllerClass() . '/create';
     }
 
     /**
@@ -356,13 +366,7 @@ class MagicSelect extends Select2
      */
     private function getUpdateUrl()
     {
-        return strtolower(
-                preg_replace(
-                    '/(?<!^)([A-Z])/',
-                    '-\\1',
-                    '/' . (($module = $this->getModule()) ? $module . '/' : '') . $this->getControllerForSearchModel()
-                )
-            ) . '/update';
+        return $this->getBaseControllerClass() . '/update';
     }
 
     /**
