@@ -10,6 +10,7 @@
 namespace magicsoft\select;
 
 use foo\bar;
+use yii\helpers\Inflector;
 use function GuzzleHttp\Psr7\str;
 use kartik\grid\GridView;
 use kartik\select2\Select2;
@@ -23,6 +24,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\web\JsExpression;
 use yii\web\View;
+use yii\helpers\BaseInflector;
 
 
 /**
@@ -156,7 +158,7 @@ class MagicSelect extends Select2
                 return MagicSelectHelper::getDataDescription($model->{$self->relation}, MagicCrypto::encrypt($self->returnData));
             },
             'filterType' => GridView::FILTER_SELECT2,
-            'filter' => $self->model->{$self->attribute} ? \yii\helpers\ArrayHelper::map($self->model->{$self->relation}::find()->where(['id' => $self->model->{$self->attribute}])->all(),
+            'filter' => $self->model->{$self->attribute} ? ArrayHelper::map($self->model->{$self->relation}::find()->where(['id' => $self->model->{$self->attribute}])->all(),
                 function($model) {
                     return $model->id;
                 },
@@ -181,7 +183,7 @@ class MagicSelect extends Select2
 
     private function getAjaxOptions(){
         return [
-            'url' => \yii\helpers\Url::to(['/magicsoft/magic-select/get-data']),
+            'url' => Url::to(['/magicsoft/magic-select/get-data']),
             'dataType' => 'json',
             'data' => new JsExpression(
                 'function(params) {' .
@@ -244,18 +246,18 @@ class MagicSelect extends Select2
     private function setRelation()
     {
         if(!$this->relation){
-            $this->relation = lcfirst(\yii\helpers\BaseInflector::camelize(substr($this->attribute, 0, strlen($this->attribute) - 3)));
+            $this->relation = lcfirst(BaseInflector::camelize(substr($this->attribute, 0, strlen($this->attribute) - 3)));
         }
     }
 
     public function getParentAttribute()
     {
-        return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'attribute', null) : \yii\helpers\BaseInflector::underscore($this->parent . '_id');
+        return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'attribute', null) : BaseInflector::underscore($this->parent . '_id');
     }
 
     public function getThisParentAttribute()
     {
-        $default = \yii\helpers\BaseInflector::underscore($this->getParent() . '_id');
+        $default = BaseInflector::underscore($this->getParent() . '_id');
 
         return is_array($this->parent) ? ArrayHelper::getValue($this->parent, 'thisAttribute', $default) : $default;
     }
@@ -392,23 +394,26 @@ class MagicSelect extends Select2
             ],
             'append' => $this->setButtons ? [
                 'content' => '<div>' .
-                    (!$user->can($this->getUpdateUrl()) ? Html::a(
-                        '<span class="fa fa-pencil fas fa-pencil-alt"></span>',
-                        [$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)],
+                    (!$user->can($this->getUpdateUrl()) ? Html::button(
+                        '<span class="fa fa-pencil fas fa-pencil-alt ' .  $this->getThisSelectId() . '-updatetext" style="color: ' . (!$this->getValue() ? 'lightgray' : 'blue') . '"></span>',
                         [
-                            'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ?'': ' disabled'),
+                            'class' => 'magic-modal btn-default btn-flat btn-for-update-' . $this->getThisSelectId() . ($this->subModelIsActive() ? '' : (!$this->getValue() ? ' disabled' : '')),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'data-params' => '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData),
+                            'style' => 'margin-left:1px; height: 100%',
+                            'href' => Url::to([$this->getUpdateUrl(), 'id' => ($this->model ? $this->model->{$this->attribute} : null)]),
+                            'disabled' => !$this->getValue()
                         ]
                     ) : '').
-                    (!$user->can($this->getCreateUrl()) ? Html::a(
-                        '<span class="fa fa-plus fas fa-plus"></span>',
-                        [$this->getCreateUrl()],
+                    (!$user->can($this->getCreateUrl()) ? Html::button(
+                        '<span class="fa fa-plus fas fa-plus ' .  $this->getThisSelectId() . '-createtext" style="color: green"></span>',
                         [
-                            'class' => 'magic-modal btn btn-default btn-flat btn btn-outline-dark btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
+                            'class' => 'magic-modal btn-default btn-flat btn-for-create-' . $this->getThisSelectId()  . ($this->isDisabled() ? ' disabled' : ''),
                             'ajaxOptions' => ArrayHelper::getValue($this->modalOptions, 'ajaxOptions', '"confirmToLoad":false'),
                             'jsFunctions' => ArrayHelper::getValue($this->modalOptions, 'jsFunctions', ('beforeLoad:magicSelect_setTextSearched_ToForm_' . $this->getModelForSearch() . '()')),
-                            'data-params' => (!$this->getParent() ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): '')
+                            'data-params' => (!$this->getParent() ? '"magic_select_attribute":' . $this->getThisSelectId() . ',"magic_select_return_data":' . MagicCrypto::encrypt($this->returnData): ''),
+                            'style' => 'height: 100%',
+                            'href' => Url::to([$this->getCreateUrl()])
                         ]
                     ) : '') . '</div>',
                 'asButton' => true,
@@ -456,15 +461,15 @@ class MagicSelect extends Select2
     {
         $static_parent_id_value = ($this->staticParentValue ? $this->staticParentValue : '$( "#' . $this->getParentAttributeIdForm() . '").find("option:selected" ).val()');
         $select_id = $this->getThisSelectId();
+        $select_idCamel = Inflector::id2camel($select_id);
 
         $js = <<< JS
         $("#{$this->getParentAttributeIdForm()}").change(function(){
-            val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : '' ;
+            val = objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : false ;
             
-            $('#{$select_id}').empty().append($("<option>", {value: null, text: null})).val(null).prop('disabled', (val === '')).trigger('change');
+            $('#{$select_id}').empty().append($("<option>", {value: null, text: null})).val(null).prop('disabled', (val === false)).trigger('change');
             
-            $('.btn-for-create-$select_id').removeClass('disabled').addClass(val === '' ? 'disabled' : '');
-            $('.btn-for-update-$select_id').addClass('disabled');
+            {$select_idCamel}SetButtonStatus(val);
         });
         
         function get{$this->getParent()}Value(){
@@ -479,6 +484,7 @@ JS;
         $attribute_on_form = strtolower($model_for_search_tostring . '-' . $this->getLastSearchField());
         $var_for_writing_data = $this->getVarForWritingText();
         $select_id = $this->getThisSelectId();
+        $select_idCamel = Inflector::id2camel($select_id);
 
         $updateUrl = Url::to([$this->getUpdateUrl()]);
 
@@ -490,9 +496,15 @@ JS;
         $var_for_writing_data = '';
     }
     
+    function {$select_idCamel}SetButtonStatus(status){
+        var _attribute = (status === false ? 'no-link' : 'href');
+         $('.btn-for-update-{$this->getThisSelectId()}').attr({'disabled': status === false, 'href' : (status === false ? 'no-link' : '{$updateUrl}?id=' + status)});
+         $('.{$this->getThisSelectId()}-updatetext').css("color", (status === false ? 'lightgray' : 'blue'));
+    }
+    
     $("#{$this->getThisSelectId()}").change(function(){
         val = (objectIsSet(_val = $(this).find("option:selected" ).val()) ? _val : false);
-        $('.btn-for-update-{$this->getThisSelectId()}').removeClass('disabled').addClass(val === false ? 'disabled' : '').prop("href", '{$updateUrl}?id=' + val);
+        {$select_idCamel}SetButtonStatus(val);
     });
 JS;
         $this->view->registerJs($js, View::POS_END);
